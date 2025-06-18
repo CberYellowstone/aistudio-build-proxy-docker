@@ -45,10 +45,12 @@ def generate_compose_file():
         compose_data["services"]["tinyproxy"] = tinyproxy_template
 
     base_vnc_port = 5900
+    base_web_port = 5800
 
     for i in range(1, instances + 1):
         service_name = f"firefox-{i}"
         vnc_port = base_vnc_port + i
+        web_port = base_web_port + i
 
         service_config = yaml.safe_load(yaml.dump(firefox_template))
 
@@ -63,6 +65,7 @@ def generate_compose_file():
 
         env_vars = []
         env_vars.append(f"VNC_LISTENING_PORT={vnc_port}")
+        env_vars.append(f"WEB_LISTENING_PORT={web_port}")
         env_vars.append(f"FF_OPEN_URL={startup_url}")
         env_vars.append(f"VNC_PASSWORD={vnc_password}")
         if vnc_secure:
@@ -84,6 +87,7 @@ def generate_compose_file():
         service_config["environment"] = env_vars
         compose_data["services"][service_name] = service_config
         proxy_service["ports"].append(f"{vnc_port}:{vnc_port}")
+        proxy_service["ports"].append(f"{web_port}:{web_port}")
 
     compose_data["volumes"] = {
         f"firefox_data_{i}": None for i in range(1, instances + 1)
