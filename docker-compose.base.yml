@@ -1,0 +1,16 @@
+# This is the base template file.
+# It contains the non-replicating services.
+# The `generate_compose.py` script will use this as a foundation.
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: proxy.Dockerfile
+    container_name: gemini-proxy
+    restart: unless-stopped
+    # Ports will be dynamically added by the script.
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "5345"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

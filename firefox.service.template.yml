@@ -1,0 +1,11 @@
+# This is a template for a single Firefox service.
+# The generate_compose.py script will use this as a blueprint
+# and dynamically add all necessary configurations.
+
+image: jlesage/firefox:latest
+restart: unless-stopped
+depends_on:
+  - proxy
+network_mode: "service:proxy"
+shm_size: '2g'
+# 'container_name', 'volumes', and 'environment' will be added by the script.

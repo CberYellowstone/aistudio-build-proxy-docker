@@ -1,0 +1,13 @@
+# This is a template for the tinyproxy service.
+# The generate_compose.py script will conditionally add this to the main compose file.
+build:
+  context: ./tinyproxy
+container_name: tinyproxy-converter
+restart: unless-stopped
+env_file:
+  - .env
+healthcheck:
+  test: ["CMD", "nc", "-z", "localhost", "8888"]
+  interval: 10s
+  timeout: 5s
+  retries: 5

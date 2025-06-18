@@ -1,0 +1,15 @@
+# ==================================
+#  Git Ignore File
+# ==================================
+
+# Environment file with secrets
+.env
+
+# Generated docker-compose file
+docker-compose.yml
+
+# Python cache and virtual environment
+__pycache__/
+*.pyc
+.venv
+venv

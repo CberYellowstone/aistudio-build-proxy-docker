@@ -1,0 +1,16 @@
+User tinyproxy
+Group tinyproxy
+
+Port 8888
+Listen 0.0.0.0
+
+Timeout 600
+LogLevel Info
+LogFile "/var/log/tinyproxy/tinyproxy.log"
+
+# Allow access from anywhere within the Docker network
+Allow 127.0.0.1
+Allow ::1
+Allow 172.16.0.0/12
+Allow 192.168.0.0/16
+Allow 10.0.0.0/8
