@@ -22,6 +22,9 @@ def generate_compose_file():
         use_tinyproxy = str_to_bool(os.getenv("USE_TINYPROXY", "false"))
         vnc_password = os.getenv("VNC_PASSWORD", "password")
         vnc_secure = str_to_bool(os.getenv("VNC_SECURE", "true"))
+        display_width = os.getenv("DISPLAY_WIDTH", "1280")
+        display_height = os.getenv("DISPLAY_HEIGHT", "720")
+        dark_mode = os.getenv("DARK_MODE", "1")
     except (ValueError, TypeError) as e:
         print(f"Error parsing .env file: {e}")
         sys.exit(1)
@@ -45,12 +48,10 @@ def generate_compose_file():
         compose_data["services"]["tinyproxy"] = tinyproxy_template
 
     base_vnc_port = 5900
-    base_web_port = 5800
 
     for i in range(1, instances + 1):
         service_name = f"firefox-{i}"
         vnc_port = base_vnc_port + i
-        web_port = base_web_port + i
 
         service_config = yaml.safe_load(yaml.dump(firefox_template))
 
@@ -65,11 +66,15 @@ def generate_compose_file():
 
         env_vars = []
         env_vars.append(f"VNC_LISTENING_PORT={vnc_port}")
-        env_vars.append(f"WEB_LISTENING_PORT={web_port}")
+        env_vars.append("WEB_LISTENING_PORT=-1")
         env_vars.append(f"FF_OPEN_URL={startup_url}")
         env_vars.append(f"VNC_PASSWORD={vnc_password}")
+        env_vars.append(f"DISPLAY_WIDTH={display_width}")
+        env_vars.append(f"DISPLAY_HEIGHT={display_height}")
+        env_vars.append(f"DARK_MODE={dark_mode}")
         if vnc_secure:
             env_vars.append("SECURE_CONNECTION_VNC_METHOD=TLS")
+            env_vars.append("SECURE_CONNECTION=1")
 
         if use_tinyproxy:
             env_vars.append("FF_PREF_PROXY_TYPE=network.proxy.type=1")
@@ -87,7 +92,6 @@ def generate_compose_file():
         service_config["environment"] = env_vars
         compose_data["services"][service_name] = service_config
         proxy_service["ports"].append(f"{vnc_port}:{vnc_port}")
-        proxy_service["ports"].append(f"{web_port}:{web_port}")
 
     compose_data["volumes"] = {
         f"firefox_data_{i}": None for i in range(1, instances + 1)
