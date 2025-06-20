@@ -131,11 +131,14 @@ graph TD
 ### a. 环境设置 (首次)
 
 1.  **克隆仓库并初始化子模块**:
+
     ```bash
-    git clone [repository_url]
-    cd [repository_name]
-    git submodule update --init --recursive
+    git clone https://github.com/CberYellowstone/aistudio-build-proxy-docker.git
+    cd aistudio-build-proxy-docker
+
+    git submodule update --init aistudio-build-proxy
     ```
+
 2.  **安装 Python 依赖**:
     ```bash
     pip install -r requirements.txt
