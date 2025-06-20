@@ -1,3 +1,7 @@
 [submodule "aistudio-build-proxy"]
 	path = aistudio-build-proxy
 	url = https://github.com/CberYellowstone/aistudio-build-proxy
+
+[submodule "proxy-gemini-chat-ui-autorun"]
+	path = proxy-gemini-chat-ui-autorun
+	url = https://github.com/CberYellowstone/proxy-gemini-chat-ui-autorun
