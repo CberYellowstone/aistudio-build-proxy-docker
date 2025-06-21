@@ -26,6 +26,7 @@ def generate_compose_file():
         display_height = os.getenv("DISPLAY_HEIGHT", "720")
         dark_mode = os.getenv("DARK_MODE", "1")
         use_monitoring = str_to_bool(os.getenv("WITH_MONITORING", "false"))
+        proxy_auth_key = os.getenv("PROXY_AUTH_KEY", "")
     except (ValueError, TypeError) as e:
         print(f"Error parsing .env file: {e}")
         sys.exit(1)
@@ -44,6 +45,9 @@ def generate_compose_file():
 
     proxy_service = compose_data["services"]["proxy"]
     proxy_service["ports"] = ["5345:5345"]
+    if "environment" not in proxy_service:
+        proxy_service["environment"] = []
+    proxy_service["environment"].append(f"PROXY_AUTH_KEY={proxy_auth_key}")
 
     if use_tinyproxy:
         compose_data["services"]["tinyproxy"] = tinyproxy_template

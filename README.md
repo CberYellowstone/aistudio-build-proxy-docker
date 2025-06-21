@@ -6,6 +6,7 @@
 
 ## ✨ 核心特性
 
+- **🔑 可选认证**: 支持通过环境变量设置访问密钥，保护您的代理服务不被滥用，同时兼容多种 Gemini API 官方的密钥传递方式。
 - **⚙️ 配置驱动**: 仅需修改 `.env` 文件，即可轻松控制整个系统的关键参数，无需深入代码。
 - **📈 一键扩展**: 通过修改 `INSTANCES` 变量，可秒级创建或销毁任意数量的、相互隔离的 Firefox 实例。
 - **🛡️ 自动代理转换**: 内置 `tinyproxy` 服务，可将需要认证的外部 SOCKS5 代理无缝转换为内部统一的、无需认证的 HTTP 代理，极大简化客户端配置。
@@ -173,6 +174,19 @@ graph TD
   - **VNC 密码**: `password` (可在 `.env` 文件中修改)
 - **使用 Gemini 代理 (从外部工具)**:
   - 向 `http://localhost:5345` 发送您的 HTTP 请求。
+  - **如果设置了 `PROXY_AUTH_KEY`**, 您必须在请求中提供密钥。支持以下三种方式（按检查优先级排序）：
+    - **方式一 (OpenAI 兼容):**
+      ```bash
+      curl -H "Authorization: Bearer YOUR_SECRET_KEY" http://localhost:5345/...
+      ```
+    - **方式二 (Python/JS SDK 方式):**
+      ```bash
+      curl -H "x-goog-api-key: YOUR_SECRET_KEY" http://localhost:5345/...
+      ```
+    - **方式三 (URL 参数):**
+      ```bash
+      curl http://localhost:5345/...&key=YOUR_SECRET_KEY
+      ```
 - **访问监控数据 (如果 `WITH_MONITORING=true`)**:
   - 打开浏览器并访问 Prometheus UI: `http://localhost:9090`
   - 您可以在此执行 PromQL 查询，直接分析和调试所有采集到的指标。
@@ -196,6 +210,7 @@ graph TD
 | ----------------------- | --------- | ---------------------------------------------------------------------------------- | --------------------------------- |
 | `INSTANCES`             | `Integer` | 要创建的 Firefox 实例的数量。                                                      | `1`                               |
 | `STARTUP_URL`           | `String`  | 每个 Firefox 实例启动时默认加载的 URL。                                            | `https://aistudio.google.com/...` |
+| `PROXY_AUTH_KEY`        | `String`  | **(安全选项)** 为代理服务设置访问密钥。留空则禁用认证。                            | (空)                              |
 | `WITH_MONITORING`       | `Boolean` | 是否部署 Prometheus 监控服务。                                                     | `false`                           |
 | `USE_TINYPROXY`         | `Boolean` | 是否启用 `tinyproxy` 服务。设置为 `true` 时，Firefox 将通过 `tinyproxy` 转发流量。 | `false`                           |
 | `UPSTREAM_SOCKS_SERVER` | `String`  | **(仅当 `USE_TINYPROXY` 为 `true` 时有效)** 外部 SOCKS5 代理服务器的地址。         | (空)                              |
