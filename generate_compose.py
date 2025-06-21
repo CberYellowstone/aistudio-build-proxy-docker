@@ -21,10 +21,11 @@ def generate_compose_file():
         startup_url = os.getenv("STARTUP_URL", "")
         use_tinyproxy = str_to_bool(os.getenv("USE_TINYPROXY", "false"))
         vnc_password = os.getenv("VNC_PASSWORD", "password")
-        vnc_secure = str_to_bool(os.getenv("VNC_SECURE", "true"))
+        vnc_secure = str_to_bool(os.getenv("VNC_SECURE", "false"))
         display_width = os.getenv("DISPLAY_WIDTH", "1280")
         display_height = os.getenv("DISPLAY_HEIGHT", "720")
         dark_mode = os.getenv("DARK_MODE", "1")
+        use_monitoring = str_to_bool(os.getenv("WITH_MONITORING", "false"))
     except (ValueError, TypeError) as e:
         print(f"Error parsing .env file: {e}")
         sys.exit(1)
@@ -97,6 +98,35 @@ def generate_compose_file():
         f"firefox_data_{i}": None for i in range(1, instances + 1)
     }
 
+    # --- Conditionally add monitoring stack ---
+    if use_monitoring:
+        monitoring_services = {
+            "prometheus": {
+                "image": "prom/prometheus:v2.37.0",
+                "container_name": "prometheus",
+                "restart": "unless-stopped",
+                "volumes": [
+                    "./monitoring/prometheus:/etc/prometheus",
+                    "prometheus_data:/prometheus",
+                ],
+                "command": ["--config.file=/etc/prometheus/prometheus.yml"],
+                "ports": ["9090:9090"],
+            }
+        }
+        compose_data["services"].update(monitoring_services)
+
+        # Merge top-level volumes
+        monitoring_volumes = {"prometheus_data": None}
+        if "volumes" not in compose_data:
+            compose_data["volumes"] = {}
+        compose_data["volumes"].update(monitoring_volumes)
+
+        # Define and assign network
+        compose_data["networks"] = {"gemini_proxy_network": {"driver": "bridge"}}
+        for service_name, service_config in compose_data["services"].items():
+            if not service_name.startswith("firefox-"):
+                service_config["networks"] = ["gemini_proxy_network"]
+
     try:
         with open("docker-compose.yml", "w") as f:
             yaml.dump(compose_data, f, default_flow_style=False, sort_keys=False)
@@ -107,6 +137,10 @@ def generate_compose_file():
             print("Upstream proxy via tinyproxy is ENABLED.")
         else:
             print("Upstream proxy is DISABLED.")
+        if use_monitoring:
+            print("Monitoring stack (Prometheus only) is ENABLED.")
+        else:
+            print("Monitoring stack is DISABLED.")
     except IOError as e:
         print(f"Error writing to output file: {e}")
         sys.exit(1)

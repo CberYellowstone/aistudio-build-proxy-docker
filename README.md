@@ -107,21 +107,24 @@ graph TD
 
 ```
 .
-├── aistudio-build-proxy/        # Git子模块: Gemini API 代理的Go源码
+├── aistudio-build-proxy/         # Git子模块: Gemini API 代理的Go源码
 │   ├── main.go
 │   └── go.mod
-├── tinyproxy/                   # Tinyproxy服务目录
+├── monitoring/                   # (可选) 监控套件配置
+│   ├── prometheus/
+│   │   └── prometheus.yml
+├── tinyproxy/                    # Tinyproxy服务目录
 │   ├── Dockerfile
-│   ├── entrypoint.sh            # 动态配置脚本
-│   └── tinyproxy.conf.template  # 配置文件模板
-├── .env.example                 # 环境变量示例文件
-├── .gitmodules                  # Git子模块配置文件
-├── proxy.Dockerfile             # Gemini API 代理的Dockerfile
-├── docker-compose.base.yml      # 基础服务(proxy)的Compose模板
-├── firefox.service.template.yml # Firefox实例的Compose模板
-├── generate_compose.py          # 动态生成docker-compose.yml的脚本
-├── requirements.txt             # Python脚本依赖
-└── README.md                    # 本文档
+│   ├── entrypoint.sh
+│   └── tinyproxy.conf.template
+├── .env.example                  # 环境变量示例文件
+├── .gitmodules                   # Git子模块配置文件
+├── proxy.Dockerfile              # Gemini API 代理的Dockerfile
+├── docker-compose.base.yml       # 基础服务(proxy)的Compose模板
+├── firefox.service.template.yml  # Firefox实例的Compose模板
+├── generate_compose.py           # 动态生成docker-compose.yml的脚本
+├── requirements.txt              # Python脚本依赖
+└── README.md                     # 本文档
 ```
 
 ---
@@ -150,7 +153,7 @@ graph TD
 
 ### b. 配置与启动
 
-1.  **编辑 `.env` 文件**: 打开 `.env` 文件，根据下方 **配置说明** 修改参数。
+1.  **编辑 `.env` 文件**: 打开 `.env` 文件，根据下方 **配置说明** 修改参数。确保根据需要设置 `WITH_MONITORING` 的值为 `true` 或 `false`。
 2.  **生成 `docker-compose.yml`**:
     ```bash
     python generate_compose.py
@@ -159,6 +162,7 @@ graph TD
     ```bash
     docker-compose up -d --build
     ```
+    此命令会根据您的 `.env` 配置，启动核心服务或包含监控套件的完整服务。
 
 ### c. 连接与使用
 
@@ -166,9 +170,12 @@ graph TD
   - 第一个实例: `localhost:5901`
   - 第二个实例: `localhost:5902`
   - ...以此类推
-  - **VNC 密码**: `password` (可在 `generate_compose.py` 中修改)
+  - **VNC 密码**: `password` (可在 `.env` 文件中修改)
 - **使用 Gemini 代理 (从外部工具)**:
   - 向 `http://localhost:5345` 发送您的 HTTP 请求。
+- **访问监控数据 (如果 `WITH_MONITORING=true`)**:
+  - 打开浏览器并访问 Prometheus UI: `http://localhost:9090`
+  - 您可以在此执行 PromQL 查询，直接分析和调试所有采集到的指标。
 
 ### d. 停止服务
 
@@ -189,6 +196,7 @@ graph TD
 | ----------------------- | --------- | ---------------------------------------------------------------------------------- | --------------------------------- |
 | `INSTANCES`             | `Integer` | 要创建的 Firefox 实例的数量。                                                      | `1`                               |
 | `STARTUP_URL`           | `String`  | 每个 Firefox 实例启动时默认加载的 URL。                                            | `https://aistudio.google.com/...` |
+| `WITH_MONITORING`       | `Boolean` | 是否部署 Prometheus 监控服务。                                                     | `false`                           |
 | `USE_TINYPROXY`         | `Boolean` | 是否启用 `tinyproxy` 服务。设置为 `true` 时，Firefox 将通过 `tinyproxy` 转发流量。 | `false`                           |
 | `UPSTREAM_SOCKS_SERVER` | `String`  | **(仅当 `USE_TINYPROXY` 为 `true` 时有效)** 外部 SOCKS5 代理服务器的地址。         | (空)                              |
 | `UPSTREAM_SOCKS_PORT`   | `Integer` | **(仅当 `USE_TINYPROXY` 为 `true` 时有效)** 外部 SOCKS5 代理服务器的端口。         | (空)                              |
